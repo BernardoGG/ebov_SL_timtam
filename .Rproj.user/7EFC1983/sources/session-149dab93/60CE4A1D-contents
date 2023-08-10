@@ -1,0 +1,388 @@
+---
+title: "EBOV datasets"
+subtitle: "Exponential growth (data)"
+author: "Louis du Plessis"
+date: '`r format(Sys.time(), "Last modified: %d %b %Y")`'
+output:
+  github_document:
+    toc: true
+    toc_depth: 2
+layout: page
+editor_options: 
+  chunk_output_type: inline
+params: 
+  inputpath: "data/"
+  outputpath: "results/"
+  
+---
+
+# Summary
+
+We extract datasets from two sub-epidemics during the 2014-2016 West African Ebola virus disease epidemic. In particular, we focus on the early period of exponential growth in Eastern Sierra Leone (Kailahun and Kenema provinces only), shortly after the virus was introduced to Sierra Leone, and the initial growth of cases in Western Sierra Leone (predominantly in the capital Freetown). From Eastern Sierra Leone we extract two datasets, dataset A (up to 22nd June 2014) representing the first 5 weeks of growth, and dataset B (up to August 3rd 2014) representing the period until the WHO declared a public health emergency of international concern (PHEIC) on 8th August 2014. From Western Sierra Leone we extract dataset C (up to November 9th 2014), after which the Freetown epidemic began to slow down. 
+
+Dataset A contains a large proportion of genome sequences to cases, dataset B contains much more unsequenced cases during the latter half of the dataset (which may cause issues when assuming constant sampling rates), and dataset C contains a much larger number of unsequenced cases. 
+
+Genome sequences for all datasets were extracted from data hosted at [https://github.com/ebov/space-time.git](https://github.com/ebov/space-time.git), downloaded on 2021/03/12 [Dudas et al, Virus genomes reveal factors that spread and sustained the Ebola epidemic, Nature, 2017].
+
+Case data were downloaded from [http://apps.who.int/gho/data/node.ebola-sitrep](http://apps.who.int/gho/data/node.ebola-sitrep) on 2021/03/11. In all cases we used only values from the patient database, as data from situation reports are only available after 21 September (epiweek 38). Datasets with only confirmed cases and with confirmed as well as probable cases are available. For definitions of the terms, "confirmed", "probable" and "suspected", see the [case definition recommendations](https://www.who.int/csr/resources/publications/ebola/ebola-case-definition-contact-en.pdf). A [situation summary from November 2014](https://apps.who.int/gho/data/view.ebola-sitrep.ebola-summary-20141121?lang=en) suggests the ratio of confirmed to suspected cases is about 5 to 1.
+
+
+```{r rsetup, include=FALSE}
+  
+    library(lubridate)
+    library(dplyr)
+    library(gplots)
+    source("scripts/plotutils.R")
+    source("scripts/palettes.R")
+
+    inputpath  <- params$inputpath
+    outputpath <- params$outputpath
+
+    figpath    <- paste0(outputpath, "figures/")
+    dir.create(outputpath, recursive = TRUE, showWarnings = FALSE)
+    dir.create(paste0(outputpath, "fasta/"), recursive = TRUE, showWarnings = FALSE)
+    dir.create(figpath, recursive = TRUE, showWarnings = FALSE)
+
+    knitr::opts_chunk$set(tidy=FALSE, cache=FALSE, 
+                          dev="png", dpi=150, fig.path=figpath, 
+                          message=FALSE, error=FALSE, warning=TRUE, echo=FALSE)
+```
+
+```{r functions}
+
+    parseDate <- function(dateString) {
+        
+        m       <- regmatches(dateString, regexec("^(.*) to (.*) \\(([0-9]+)-W([0-9]+)\\)$", dateString))
+        matches <- list(start   = m[[1]][2], 
+                        end     = as.Date(m[[1]][3], format = "%d %B %Y"), 
+                        epiyear = m[[1]][4], 
+                        epiweek = m[[1]][5])
+        
+        start   <- as.Date(matches$start, format = "%d %B %Y")
+        if (is.na(start)) {
+            start   <- as.Date(paste(matches$start, format.Date(matches$end, format="%Y")), format = "%d %B %Y")
+            
+            if (is.na(start)) {
+                start   <- as.Date(paste(matches$start, format.Date(matches$end, format="%B %Y")), format = "%d %B %Y")
+            }
+            
+            if (is.na(start)) {
+                stop(paste("Cannot parse start date (", matches$start, ")"))
+            }
+        }
+        matches$start <- format.Date(start, format="%Y-%m-%d")
+        matches$end   <- format.Date(matches$end, format="%Y-%m-%d")
+        
+        return(unlist(matches))
+    }
+
+```
+
+
+```{r load-data}
+
+    # Case data
+    sle_cases <- read.csv(paste0(inputpath, "cases/sle_2016-05-11_cleaned.csv"))
+    sle_cases <- sapply(sle_cases$Epi.week, parseDate) %>% t %>% data.frame(., stringsAsFactors = FALSE) %>% bind_cols(sle_cases, .)
+    sle_cases$start   <- ymd(sle_cases$start)
+    sle_cases$end     <- ymd(sle_cases$end)
+    sle_cases$epiyear <- as.numeric(sle_cases$epiyear)
+    sle_cases$epiweek <- as.numeric(sle_cases$epiweek)
+    
+    write.csv(sle_cases, paste0(outputpath, "sle_2016-05-11_processed.csv"), row.names=FALSE)
+    
+    
+    # Sequence data
+    seqdb <- read.csv(paste0(inputpath, "sequence/Makona_1610_metadata_2016-06-23.csv"), row.names = 1)
+    
+    # Column names to rename
+    renamemap <- list("final_label"  = "label",
+                      "prop_ambig."  = "proportion_ambiguous",
+                      "imputed_date."= "imputed_date")
+    
+    # Rename columns, add NAs and remove commas
+    cols <- names(seqdb)
+    for (i in 1:length(cols)) {
+        #print(cols[i])
+        seqdb[[cols[i]]][which(seqdb[cols[i]] == "")]  <- NA
+        seqdb[[cols[i]]][which(seqdb[cols[i]] == "?")] <- NA
+        
+        collevels <- levels(seqdb[[cols[i]]])
+        commas <- grep(",", collevels)
+        for (c in commas) {
+            collevels[c] <- gsub(",","",collevels[c])
+        }
+        levels(seqdb[[cols[i]]]) <- collevels
+        
+        if (cols[i] %in% names(renamemap))
+            cols[i] <- renamemap[[cols[i]]]
+    }
+    names(seqdb) <- cols
+    seqdb <- droplevels(seqdb)
+    
+    # Convert to dates
+    seqdb$date            <- as.Date(seqdb$date, format="%d/%m/%Y")
+    seqdb$imputed_date    <- as.Date(seqdb$imputed_date, format="%d/%m/%Y")
+    seqdb$collection_date <- as.Date(seqdb$collection_date, format="%d/%m/%Y")
+
+    # Remove comma from reference names so we do not need to use quoting.
+    seqdb$reference <- gsub(pattern = ",", replacement = "", x = seqdb$reference)
+    
+    # Save file
+    write.csv(seqdb, paste0(outputpath,"sequences_all.csv"), quote=FALSE, row.names=FALSE)
+
+```
+
+
+# Sierra Leone early outbreak
+
+Focus on cases from Kailahun and Kenema, the two provinces where the Sierra Leone epidemic started. Both provinces had concurrent outbreaks with exponential growth during May-August 2014. These are also the provinces initial early sequencing efforts were focussed on. 
+
+
+```{r kailahun-kenema-cases, fig.width=7.5, fig.height=5, fig.cap = "Weekly numbers of confirmed cases in Kailahun and Kenema."} 
+
+    kailahun_pat_conf <- sle_cases[sle_cases$Location == "KAILAHUN" & sle_cases$Ebola.data.source == "Patient database" & sle_cases$Case.definition == "Confirmed", c(10:14)] %>% droplevels
+    kailahun_pat_prob <- sle_cases[sle_cases$Location == "KAILAHUN" & sle_cases$Ebola.data.source == "Patient database" & sle_cases$Case.definition == "Probable",  c(10:14)] %>% droplevels
+    
+    kailahun_pat_conf$Numeric[which(is.na(kailahun_pat_conf$Numeric))] <- 0
+    kailahun_pat_prob$Numeric[which(is.na(kailahun_pat_prob$Numeric))] <- 0
+    
+    kenema_pat_conf   <- sle_cases[sle_cases$Location == "KENEMA"   & sle_cases$Ebola.data.source == "Patient database" & sle_cases$Case.definition == "Confirmed", c(10:14)] %>% droplevels
+    kenema_pat_prob   <- sle_cases[sle_cases$Location == "KENEMA"   & sle_cases$Ebola.data.source == "Patient database" & sle_cases$Case.definition == "Probable",  c(10:14)] %>% droplevels
+
+    kenema_pat_conf$Numeric[which(is.na(kenema_pat_conf$Numeric))] <- 0
+    kenema_pat_prob$Numeric[which(is.na(kenema_pat_prob$Numeric))] <- 0
+    
+    
+    kailahun_kenema_conf <- kailahun_pat_conf
+    kailahun_kenema_conf$Numeric <- kailahun_kenema_conf$Numeric + kenema_pat_conf$Numeric[match(kailahun_kenema_conf$end, kenema_pat_conf$end)]
+        
+    kailahun_kenema_all  <- kailahun_pat_conf
+    kailahun_kenema_all$Numeric <- kailahun_kenema_all$Numeric + 
+                                   kailahun_pat_prob$Numeric[match(kailahun_kenema_all$end, kailahun_pat_prob$end)] +
+                                   kenema_pat_conf$Numeric[match(kailahun_kenema_all$end, kenema_pat_conf$end)] +
+                                   kenema_pat_prob$Numeric[match(kailahun_kenema_all$end, kenema_pat_prob$end)]
+
+    #write.csv(kailahun_kenema_conf, paste0(outputpath, "kailahun_kenema_confirmed.csv"), row.names=FALSE)
+    #write.csv(kailahun_kenema_all,  paste0(outputpath, "kailahun_kenema_all.csv"), row.names=FALSE)
+  
+    # Ignore situation reports (started too late to be relevant here)
+    #kailahun_sit_conf <- sle_cases[sle_cases$Location == "KAILAHUN" & sle_cases$Ebola.data.source == "Situation report" & sle_cases$Case.definition == "Confirmed", c(10:14)] %>% droplevels
+    #kenema_sit_conf   <- sle_cases[sle_cases$Location == "KENEMA"   & sle_cases$Ebola.data.source == "Situation report" & sle_cases$Case.definition == "Confirmed", ] %>% droplevels
+    
+    
+    par(mar=c(4,6,3,7), cex.axis=0.8, cex.lab=1.25, mgp=c(3,0.5,0))
+    dateFreqDistribution(rbind(kailahun_pat_conf$Numeric, kenema_pat_conf$Numeric), c(min(kailahun_pat_conf$start), kailahun_pat_conf$end), startDate = "2014-04-27", endDate = "2014-12-28", 
+                         bigBreak="weeks", smallBreaks="weeks", col=mPal(c(dark$blue, dark$orange), 0.5), border = c(dark$blue, dark$orange), ymax = 140, ylab="Weekly confirmed cases")
+    legend('topleft', horiz=FALSE, fill = mPal(c(dark$blue, dark$orange), 0.5), border = c(dark$blue, dark$orange), legend=c("Kailahun", "Kenema"), bty='n')
+
+```
+
+**Weekly numbers of confirmed cases in Kailahun and Kenema.**
+
+
+```{r kailahun-kenema-seqs, fig.width=7.5, fig.height=5, fig.cap = "Weekly numbers of sequenced and unsequenced confirmed cases in Kailahun and Kenema."}
+
+    kailahun_kenema_seqs <- seqdb[which(seqdb$location %in% c("Kailahun","Kenema")), ] %>% droplevels
+
+    kailahun_kenema_seqs_hist <- hist(kailahun_kenema_seqs$date, breaks=kailahun_kenema_all$end, plot=FALSE)
+    
+    kailahun_kenema_all$sequenced   <- c(0, kailahun_kenema_seqs_hist$counts)
+    kailahun_kenema_all$unsequenced <- kailahun_kenema_all$Numeric - kailahun_kenema_all$sequenced
+    kailahun_kenema_all$total       <- kailahun_kenema_all$Numeric
+    kailahun_kenema_all$Numeric     <- NULL
+    
+    kailahun_kenema_conf$sequenced   <- c(0, kailahun_kenema_seqs_hist$counts)
+    kailahun_kenema_conf$unsequenced <- kailahun_kenema_conf$Numeric - kailahun_kenema_conf$sequenced
+    kailahun_kenema_conf$total       <- kailahun_kenema_conf$Numeric
+    kailahun_kenema_conf$Numeric     <- NULL
+    
+    par(mar=c(4,6,3,7), cex.axis=0.8, cex.lab=1.25, mgp=c(3,0.5,0))
+    dateFreqDistribution(rbind(kailahun_kenema_conf$sequenced, kailahun_kenema_conf$unsequenced), 
+                         c(min(kailahun_kenema_conf$start), kailahun_kenema_conf$end), startDate = "2014-04-27", endDate = "2014-12-28", 
+                         bigBreak="weeks", smallBreaks="weeks", col=mPal(c(dark$blue, dark$orange), 0.5), border = c(dark$blue, dark$orange), ymax = 140, ylab="Weekly confirmed cases")
+    legend('topleft', horiz=FALSE, fill = mPal(c(dark$blue, dark$orange), 0.5), border = c(dark$blue, dark$orange), legend=c("Sequenced", "Unsequenced"), bty='n')
+
+```
+
+**Weekly numbers of sequenced and unsequenced confirmed cases in Kailahun and Kenema.**
+
+```{r kailahun-kenema-probable, fig.width=7.5, fig.height=5, fig.cap = "Weekly numbers of probable and confirmed cases in Kailahun and Kenema."}
+
+kailahun_kenema_prob <- kailahun_pat_prob
+kailahun_kenema_prob$Numeric <- kailahun_kenema_prob$Numeric +
+                                kenema_pat_prob$Numeric[match(kailahun_kenema_prob$end, kenema_pat_prob$end)]
+
+par(mar=c(4,6,3,7), cex.axis=0.8, cex.lab=1.25, mgp=c(3,0.5,0))
+dateFreqDistribution(rbind(kailahun_kenema_prob$Numeric, kailahun_kenema_conf$total),
+                     c(min(kailahun_kenema_prob$start), kailahun_kenema_prob$end), startDate = "2014-04-27", endDate = "2014-12-28",
+                     bigBreak="weeks", smallBreaks="weeks", col=mPal(c(dark$blue, dark$orange), 0.5), border = c(dark$blue, dark$orange), ymax = 140, ylab="Weekly cases")
+legend('topleft', horiz=FALSE, fill = mPal(c(dark$blue, dark$orange), 0.5), border = c(dark$blue, dark$orange), legend=c("Probable", "Confirmed"), bty='n')
+
+```
+
+**Weekly numbers of probable and confirmed cases in Kailahun and Kenema.**
+
+\clearpage
+
+# Freetown outbreak
+
+Focus on cases from the Western Area in Sierra Leone (predominantly Freetown), which experienced a wave of exponential growth between August and November 2014. 
+
+```{r western-cases, fig.width=7.5, fig.height=5, fig.cap = "Weekly numbers of confirmed cases in SLE Western Area."} 
+
+    westernurban_pat_conf <- sle_cases[sle_cases$Location == "WESTERN AREA URBAN" & sle_cases$Ebola.data.source == "Patient database" & sle_cases$Case.definition == "Confirmed", c(10:14)] %>% droplevels
+    westernurban_pat_prob <- sle_cases[sle_cases$Location == "WESTERN AREA URBAN" & sle_cases$Ebola.data.source == "Patient database" & sle_cases$Case.definition == "Probable",  c(10:14)] %>% droplevels
+    
+    westernurban_pat_conf$Numeric[which(is.na(westernurban_pat_conf$Numeric))] <- 0
+    westernurban_pat_prob$Numeric[which(is.na(westernurban_pat_prob$Numeric))] <- 0
+    
+    
+    westernrural_pat_conf <- sle_cases[sle_cases$Location == "WESTERN AREA RURAL" & sle_cases$Ebola.data.source == "Patient database" & sle_cases$Case.definition == "Confirmed", c(10:14)] %>% droplevels
+    westernrural_pat_prob <- sle_cases[sle_cases$Location == "WESTERN AREA RURAL" & sle_cases$Ebola.data.source == "Patient database" & sle_cases$Case.definition == "Probable",  c(10:14)] %>% droplevels
+    
+    westernrural_pat_conf$Numeric[which(is.na(westernrural_pat_conf$Numeric))] <- 0
+    westernrural_pat_prob$Numeric[which(is.na(westernrural_pat_prob$Numeric))] <- 0
+    
+  
+    
+    western_conf <- westernurban_pat_conf
+    western_conf$Numeric <- western_conf$Numeric + westernrural_pat_conf$Numeric[match(western_conf$end, westernrural_pat_conf$end)]
+        
+    western_all  <- westernurban_pat_conf
+    western_all$Numeric <- western_all$Numeric + 
+                           westernurban_pat_prob$Numeric[match(western_all$end, westernurban_pat_prob$end)] +
+                           westernrural_pat_conf$Numeric[match(western_all$end, westernrural_pat_conf$end)] +
+                           westernrural_pat_prob$Numeric[match(western_all$end, westernrural_pat_prob$end)]
+
+    #write.csv(western_conf, paste0(outputpath, "western_confirmed.csv"), row.names=FALSE)
+    #write.csv(western_all,  paste0(outputpath, "western_all.csv"), row.names=FALSE)
+
+    
+    par(mar=c(4,6,3,7), cex.axis=0.8, cex.lab=1.25, mgp=c(3,0.5,0))
+    dateFreqDistribution(rbind(westernurban_pat_conf$Numeric, westernrural_pat_conf$Numeric), c(min(westernurban_pat_conf$start), westernurban_pat_conf$end), 
+                         startDate = "2014-06-01", endDate = "2015-03-01", 
+                         bigBreak="weeks", smallBreaks="weeks", col=mPal(c(dark$blue, dark$orange), 0.5), border = c(dark$blue, dark$orange), ymax = 350, ylab="Weekly confirmed cases")
+    legend('topleft', horiz=FALSE, fill = mPal(c(dark$blue, dark$orange), 0.5), border = c(dark$blue, dark$orange), legend=c("Western urban", "Western rural"), bty='n')
+
+```
+
+**Weekly numbers of confirmed cases in SLE Western Area.**
+
+```{r western-seqs, fig.width=7.5, fig.height=5, fig.cap = "Weekly numbers of sequenced and unsequenced confirmed cases in SLE Western Area."}
+
+    western_seqs <- seqdb[which(seqdb$location %in% c("WesternArea","WesternUrban", "WesternRural")), ] %>% droplevels
+
+    western_seqs_hist <- hist(western_seqs$date, breaks=western_all$end, plot=FALSE)
+    
+    western_all$sequenced   <- c(0, western_seqs_hist$counts)
+    western_all$unsequenced <- western_all$Numeric - western_all$sequenced
+    western_all$total       <- western_all$Numeric
+    western_all$Numeric     <- NULL
+    
+    western_conf$sequenced   <- c(0, western_seqs_hist$counts)
+    western_conf$unsequenced <- western_conf$Numeric - western_conf$sequenced
+    western_conf$total       <- western_conf$Numeric
+    western_conf$Numeric     <- NULL
+    
+    par(mar=c(4,6,3,7), cex.axis=0.8, cex.lab=1.25, mgp=c(3,0.5,0))
+    dateFreqDistribution(rbind(western_conf$sequenced, western_conf$unsequenced), 
+                         c(min(western_conf$start), western_conf$end), startDate = "2014-04-27", endDate = "2014-12-28", 
+                         bigBreak="weeks", smallBreaks="weeks", col=mPal(c(dark$blue, dark$orange), 0.5), border = c(dark$blue, dark$orange), ymax = 350, ylab="Weekly confirmed cases")
+    legend('topleft', horiz=FALSE, fill = mPal(c(dark$blue, dark$orange), 0.5), border = c(dark$blue, dark$orange), legend=c("Sequenced", "Unsequenced"), bty='n')
+
+```
+
+**Weekly numbers of sequenced and unsequenced confirmed cases in SLE Western Area.**
+
+\clearpage
+
+# Extract datasets
+
+```{r setup-datasets, results="asis"} 
+
+    dataset_A_cases_conf <- kailahun_kenema_conf[kailahun_kenema_conf$end  <= ymd("2014-06-22") & kailahun_kenema_conf$total > 0, ]
+    dataset_A_cases_all  <- kailahun_kenema_all[kailahun_kenema_all$end  <= ymd("2014-06-22") & kailahun_kenema_all$total > 0, ]
+    dataset_A_seqs       <- kailahun_kenema_seqs[kailahun_kenema_seqs$date <= ymd("2014-06-22"), ]
+    write.csv(dataset_A_cases_conf, paste0(outputpath, "dataset_A_cases_conf.csv"), row.names=FALSE, quote=FALSE)
+    write.csv(dataset_A_cases_all, paste0(outputpath, "dataset_A_cases_all.csv"), row.names=FALSE, quote=FALSE)
+    write.csv(dataset_A_seqs, paste0(outputpath, "dataset_A_seqs.csv"), row.names=FALSE, quote=FALSE)
+
+    
+    dataset_B_cases_conf <- kailahun_kenema_conf[kailahun_kenema_conf$end  <= ymd("2014-08-03") & kailahun_kenema_conf$total > 0, ]
+    dataset_B_cases_all  <- kailahun_kenema_all[kailahun_kenema_all$end  <= ymd("2014-08-03") & kailahun_kenema_all$total > 0, ]
+    dataset_B_seqs       <- kailahun_kenema_seqs[kailahun_kenema_seqs$date <= ymd("2014-08-03"), ]
+    write.csv(dataset_B_cases_conf, paste0(outputpath, "dataset_B_cases_conf.csv"), row.names=FALSE, quote=FALSE)
+    write.csv(dataset_B_cases_all, paste0(outputpath, "dataset_B_cases_all.csv"), row.names=FALSE, quote=FALSE)
+    write.csv(dataset_B_seqs, paste0(outputpath, "dataset_B_seqs.csv"), row.names=FALSE, quote=FALSE)
+    
+    
+    dataset_C_cases_conf <- western_conf[western_conf$end  <= ymd("2014-11-09") & western_all$total > 0, ]
+    dataset_C_cases_all  <- western_all[western_all$end  <= ymd("2014-11-09") & western_all$total > 0, ]
+    dataset_C_seqs       <- western_seqs[western_seqs$date <= ymd("2014-11-09"), ]
+    write.csv(dataset_C_cases_conf, paste0(outputpath, "dataset_C_cases_conf.csv"), row.names=FALSE, quote=FALSE)
+    write.csv(dataset_C_cases_all, paste0(outputpath, "dataset_C_cases_all.csv"), row.names=FALSE, quote=FALSE)
+    write.csv(dataset_C_seqs, paste0(outputpath, "dataset_C_seqs.csv"), row.names=FALSE, quote=FALSE)
+    
+    
+    
+    # Quick summary table
+    tabledata <- data.frame(dataset     = "A", 
+                            duration    = nrow(dataset_A_cases_all), 
+                            sequenced   = sum(dataset_A_cases_all$sequenced),
+                            unsequenced = sum(dataset_A_cases_conf$unsequenced), 
+                            probable    = sum(dataset_A_cases_all$unsequenced - dataset_A_cases_conf$unsequenced))
+
+    tabledata <- rbind(tabledata,
+                       data.frame(dataset     = "B", 
+                                  duration    = nrow(dataset_B_cases_all), 
+                                  sequenced   = sum(dataset_B_cases_all$sequenced),
+                                  unsequenced = sum(dataset_B_cases_conf$unsequenced), 
+                                  probable    = sum(dataset_B_cases_all$unsequenced - dataset_B_cases_conf$unsequenced)))
+                       
+    tabledata <- rbind(tabledata, 
+                       data.frame(dataset     = "C", 
+                                  duration    = nrow(dataset_C_cases_all), 
+                                  sequenced   = sum(dataset_C_cases_all$sequenced),
+                                  unsequenced = sum(dataset_C_cases_conf$unsequenced), 
+                                  probable    = sum(dataset_C_cases_all$unsequenced - dataset_C_cases_conf$unsequenced)))
+    
+    print(knitr::kable(tabledata, col.names = c("Dataset", "Duration (weeks)", "Sequenced cases", "Unsequenced cases", "Probable cases"), caption = "Dataset summary"))
+
+```
+
+
+```{bash extract-fasta, results='hide', eval=TRUE}
+    
+    # Load Conda environment
+    source /Users/user/anaconda3/envs/bio/bin/activate bio
+
+    # Extract sequences
+    for i in `ls ../results/dataset*.csv` 
+    do 
+        # Full-length genomes
+        python ../scripts/selectsequences.py -i ${i} -a ../data/sequence/Makona_1610_cds_ig.fas -o ../results/fasta/full/ -m -u
+        
+        # Coding sequences
+        python ../scripts/selectsequences.py -i ${i} -a ../data/sequence/Makona_1610_cds.fas -o ../results/fasta/cds/ -m -u
+        
+        # Noncoding sequences
+        python ../scripts/selectsequences.py -i ${i} -a ../data/sequence/Makona_1610_ig.fas -o ../results/fasta/ig/ -m -u
+    done
+    
+```
+
+
+# Session info
+
+```{r sessionInfo, results='markup'}
+    sessionInfo()
+```
+
+# Colophon
+
+To generate `extractData.md` run the following command
+
+```bash
+R --silent --vanilla -e "rmarkdown::render('extractData.Rmd', output_format = 'github_document', output_file = 'extractData.md')"
+```

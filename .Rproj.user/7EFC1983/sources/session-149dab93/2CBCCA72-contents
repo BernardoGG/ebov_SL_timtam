@@ -1,0 +1,177 @@
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(purrr))
+suppressPackageStartupMessages(library(stringr))
+library(reshape2)
+library(ggplot2)
+library(jsonlite)
+library(magrittr)
+
+read_beast2_log <- function(filename, burn = 0, take_last = NA) {
+  y <- read.csv(filename, sep = "\t", comment.char = "#")
+  if (is.na(take_last) & burn >= 0) {
+    return(tail(y, nrow(y) - burn))
+  } else if (!is.na(take_last) & burn == 0) {
+    return(tail(y, take_last))
+  } else {
+    stop("Unsupported arguments given to read_beast2_log.")
+  }
+}
+
+## Define some hex codes to use as a colour scheme. These are from
+## \code{https://colorbrewer2.org/?type=diverging&scheme=RdYlBu&n=7}
+my_colours <- list(
+  white = "#ffffff",
+  truth = list(dark = "#d73027", light = "#fee090"),
+  estimate = list(dark = "#4575b4", light = "#e0f3f8")
+)
+
+timtam_log <- "timtam.log"
+params_png <- "tutorial-7-marginals.png"
+prev_png <- "tutorial-7-prevalence.png"
+sim_traj <- "tutorial-7-simulation-output.traj"
+num_to_burn <- 100
+true_death_rate <- 0.046
+true_sampling_rate <- 0.008
+true_occ_rate <- 0.046
+true_birth_rate <- 0.185
+true_r_naught <-
+  true_birth_rate / (true_death_rate + true_sampling_rate + true_occ_rate)
+
+make_record <- function(x) {
+  x |>
+    as.numeric() |>
+    as.list() |>
+    set_names(c("t", "W", "X", "Y", "Z")) |>
+    as.data.frame()
+}
+
+sim_data <- sim_traj |>
+  readLines() |>
+  pluck(2) |>
+  str_split("\t") |>
+  unlist() |>
+  pluck(2) |>
+  str_split(";") |>
+  unlist() |>
+  str_replace_all("[tWXYZ]=", "") |>
+  str_split(":") |>
+  map(make_record) |>
+  bind_rows()
+
+
+true_final_prev <- tail(sim_data$X, 1)
+
+## Make a figure showing what the posterior distribution of the reproduction
+## number looks like. We use the version of the R0 described on the Parameters
+## wiki page.
+
+timtam_post <- timtam_log %>%
+  read_beast2_log(burn = num_to_burn) %>%
+  select(TTR0) %>%
+  melt(id.vars = c())
+
+## It is a bit messy, but the following fill the histogram bars based on whether
+## the value is in the 95% HPD set.
+r0_hppb <- quantile(timtam_post$value, probs = c(0.025, 0.975))
+r0_value_range <- range(timtam_post$value)
+r0_binwidth <- 0.01
+r0_bin_breaks <-
+  ggplot2:::bin_breaks_width(r0_value_range, width = r0_binwidth)$breaks %>%
+  head(-1)
+r0_fill_hex <- ifelse(
+  r0_hppb[1] < r0_bin_breaks & r0_bin_breaks < r0_hppb[2],
+  my_colours$estimate$light,
+  my_colours$white
+)
+
+params_fig <- ggplot() +
+  geom_histogram(
+    data = timtam_post,
+    mapping = aes(
+      x = value,
+      y = ..density..),
+    binwidth = r0_binwidth, fill = r0_fill_hex,
+    colour = my_colours$estimate$dark
+  ) +
+  geom_vline(
+    xintercept = true_r_naught,
+    colour = my_colours$truth$dark,
+    size = 1.5
+  ) +
+  labs(
+    x = "Reproduction number",
+    y = "Posterior density",
+    title = "Estimated effective reproduction number"
+  ) +
+  theme_bw()
+
+ggsave(filename = params_png,
+       plot = params_fig,
+       height = 10.5, width = 14.8,
+       units = "cm")
+
+## Make a figure showing what the posterior distribution of the prevalence looks
+## like.
+
+prev_helper <- timtam_log %>%
+  read_beast2_log(burn = num_to_burn) %>%
+  select(starts_with("TTHistory"))
+
+size_summary_1 <- prev_helper$TTHistorySizes.1 %>%
+  quantile(probs = c(0.025, 0.5, 0.975)) %>%
+  as.numeric()
+size_summary_2 <- prev_helper$TTHistorySizes.2 %>%
+  quantile(probs = c(0.025, 0.5, 0.975)) %>%
+  as.numeric()
+time_df <- data.frame(point = c("size1", "size2"), time = 70.0 - c(10.0, 0.0))
+
+history_size_summary_df <-
+  data.frame(
+    size1 = size_summary_1,
+    size2 = size_summary_2,
+    type = c("lower", "mid", "upper")
+  ) |>
+  melt(id.vars = "type", variable.name = "point", value.name = "size") |>
+  mutate(point = as.character(point))
+
+prev_df <- full_join(time_df, history_size_summary_df, by = "point") |>
+  select(time, type, size) |>
+  dcast(time ~ type)
+
+sim_prev_df <-
+  data.frame(
+    time = as.numeric(sim_data$t),
+    num_infectious = as.numeric(sim_data$X)
+  )
+
+
+prev_fig <- ggplot() +
+  geom_linerange(
+    data = prev_df,
+    mapping = aes(x = time, ymin = lower, ymax = upper),
+    colour = my_colours$estimate$light,
+    size = 3
+  ) +
+  geom_point(
+    data = prev_df,
+    mapping = aes(x = time, y = mid),
+    colour = my_colours$estimate$dark,
+    size = 2
+  ) +
+  geom_line(
+    data = sim_prev_df,
+    mapping = aes(x = time, y = num_infectious),
+    colour = my_colours$truth$dark
+  ) +
+  labs(
+    x = "Days since outbreak began",
+    y = "Prevalence of infection",
+    title = "Prevalence of infection",
+    subtitle = "Estimates and true values from simulation"
+  ) +
+  theme_bw()
+
+ggsave(filename = prev_png,
+       plot = prev_fig,
+       height = 10.5, width = 14.8,
+       units = "cm")
