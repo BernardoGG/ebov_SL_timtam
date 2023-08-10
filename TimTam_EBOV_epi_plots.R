@@ -4,7 +4,6 @@
 
 #################### Epidemiological trends summary plots ######################
 
-library(ggplot2)
 library(patchwork)
 
 source("ebov-expgrowth-example-main/TimTam_EBOV_time_matching.R")

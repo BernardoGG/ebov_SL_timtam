@@ -4,7 +4,6 @@
 
 ########## Time span matching for genomic and epidemiological data #############
 
-library(ape)
 library(stringr)
 library(magrittr)
 
