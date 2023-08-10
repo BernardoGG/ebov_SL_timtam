@@ -1,7 +1,7 @@
 {
     "id": "249545A4",
-    "path": "~/Library/CloudStorage/OneDrive-Nexus365/Documents_Oxford/TimTam2_project/ebov-expgrowth-example-main/scripts/HPDBeanPlot.R",
-    "project_path": null,
+    "path": "~/Library/CloudStorage/OneDrive-Nexus365/Documents_Oxford/TimTam2_project/ebov_SL_timtam/HPDBeanPlot.R",
+    "project_path": "HPDBeanPlot.R",
     "type": "r_source",
     "hash": "2237144771",
     "contents": "",
@@ -16,11 +16,11 @@
         "scrollLine": "0"
     },
     "folds": "",
-    "lastKnownWriteTime": 1691662796,
+    "lastKnownWriteTime": 1691669261,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1691662796,
+    "last_content_update": 1691669261112,
     "read_only": false,
     "read_only_alternatives": []
 }
