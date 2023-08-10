@@ -5,7 +5,7 @@
 ############### Print disaster data script for the EBOV data ###################
 #################### adapted from Alex Zarebski script #########################
 
-source("ebov-expgrowth-example-main/TimTam_EBOV_time_matching.R")
+source("TimTam_EBOV_time_matching.R")
 
 ####################### Get disaster times and sizes ###########################
 disaster_times <- str_flatten(

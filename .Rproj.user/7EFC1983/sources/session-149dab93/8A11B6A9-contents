@@ -6,7 +6,7 @@
 
 library(patchwork)
 
-source("ebov-expgrowth-example-main/TimTam_EBOV_time_matching.R")
+source("TimTam_EBOV_time_matching.R")
 
 ############################## Summary plots ###################################
 ## Plot cases and sequences by epidemiological week

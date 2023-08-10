@@ -7,7 +7,7 @@
 library(stringr)
 library(magrittr)
 
-source("ebov-expgrowth-example-main/TimTam_EBOV_DataWrangling.R")
+source("TimTam_EBOV_DataWrangling.R")
 
 
 ########################## Set analysis time span ##############################
