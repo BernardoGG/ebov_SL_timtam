@@ -14,10 +14,26 @@ library(tidyverse)
 
 ## Read fasta
 slam_fasta <- timtamslamR::read_fasta(input_fasta)
-timtamslamR::plot_dates(slam_fasta)
 
 ## Convert collection dates to days from origin
 slam_fasta_days <- timtamslamR::rename_dates_to_times_a(slam_fasta)
+
+
+## Spread weekly aggregate cases into week days for time series
+slam_time_series <- time_series |>
+  select(-mid_date) |>
+  rename("week_start" = "start",
+         "week_end" = "end",
+         "count" = "total") |>
+  timtamslamR::spread_across_days()
+
+
+
+######################### Checks and comparisons ###############################
+## Plot sequences by collection date
+timtamslamR::plot_dates(slam_fasta)
+
+## Plot collection date distribution (by time of day)
 timtamslamR::plot_times(slam_fasta_days)
 
 ## Compare distribution of sequences over time from both methods
@@ -33,20 +49,9 @@ slam_method <- ggplot(
   geom_histogram(binwidth = 1) +
   labs(x = "Days from origin", y = "Number of sequences")
 
-
 home_method / slam_method
 
-timtamslamR::spread_across_days()
-
-slam_time_series <- time_series |>
-  select(-mid_date) |>
-  rename("week_start" = "start",
-         "week_end" = "end",
-         "count" = "total") |>
-  timtamslamR::spread_across_days()
-
-# Plot to inspect visually
-# Plot to inspect visually
+## Compare distribution of cases over time from both methods
 ts_uniform_plot <- ggplot(time_series_uniform) +
   geom_col(aes(x = date, y = count)) +
   theme_minimal()
@@ -56,6 +61,5 @@ ts_slam_plot <- ggplot(slam_time_series) +
   theme_minimal()
 
 ts_uniform_plot / ts_slam_plot
-
 
 # TODO -Include prevalence estimate before first sequence
