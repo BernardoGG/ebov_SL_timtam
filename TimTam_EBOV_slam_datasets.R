@@ -29,10 +29,33 @@ home_method <- ggplot(seq_meta, aes(x = collection_date)) +
 slam_method <- ggplot(
   data.frame(new_dates =
                sub(".*\\|([^|]+)$", "\\1", labels(slam_fasta_days)) %>%
-               as.numeric() %>% sort()), aes(x = new_dates)) +
-  geom_histogram(bins = 50) +
+               as.numeric() %>% sort() %>% floor()), aes(x = new_dates)) +
+  geom_histogram(binwidth = 1) +
   labs(x = "Days from origin", y = "Number of sequences")
 
 
 home_method / slam_method
 
+timtamslamR::spread_across_days()
+
+slam_time_series <- time_series |>
+  select(-mid_date) |>
+  rename("week_start" = "start",
+         "week_end" = "end",
+         "count" = "total") |>
+  timtamslamR::spread_across_days()
+
+# Plot to inspect visually
+# Plot to inspect visually
+ts_uniform_plot <- ggplot(time_series_uniform) +
+  geom_col(aes(x = date, y = count)) +
+  theme_minimal()
+
+ts_slam_plot <- ggplot(slam_time_series) +
+  geom_col(aes(x = date, y = count)) +
+  theme_minimal()
+
+ts_uniform_plot / ts_slam_plot
+
+
+# TODO -Include prevalence estimate before first sequence
