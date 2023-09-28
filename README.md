@@ -13,7 +13,7 @@ The distribution of cases and sequences is shown below (plot generated w)
 
 - [`TimTam_EBOV_DataWrangling.R`](TimTam_EBOV_DataWrangling.R): Import case data, sequence data and metadata, and generate data frames to be further used for subsequent analyses.
 - [`TimTam_EBOV_epi_plots.R`](TimTam_EBOV_epi_plots.R): Generate summary plot with numbers of cases and sequences per week in eastern Sierra Leone.
-- [`TimTam_EBOV_slam_dataset.R`](TimTam_EBOV_slam_dataset.R): Uses the TimTamSlam package to distribute weekly aggregated cases over days per epidemiological week.
+- [`TimTam_EBOV_slam_dataset.R`](TimTam_EBOV_slam_dataset.R): Uses the TimTamSlam package to distribute weekly aggregated cases over days per epidemiological week. Also estimates disaster times and backward time for these.
 
 
 Remaining R scripts are not used on the main analysis pipeline, they were used for preliminary tests.

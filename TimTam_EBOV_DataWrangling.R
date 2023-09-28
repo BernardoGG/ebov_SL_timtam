@@ -46,3 +46,7 @@ taxon_dates  <- taxon_strings |>
   str_extract(pattern = "(2014)[-][0-9][0-9][-][0-9][0-9].*$") |>
   as.Date() |>
   decimal_date()
+
+
+############################## Export files ####################################
+
