@@ -4,49 +4,45 @@
 
 #################### Epidemiological trends summary plots ######################
 
-library(patchwork)
+library(ggpattern)
 
 source("TimTam_EBOV_time_matching.R")
 
 ############################## Summary plots ###################################
-## Plot cases and sequences by epidemiological week
-ggplot(ebov_sl_cases, aes(x = epiweek, y = total)) +
-  geom_col(fill = "lightgrey") +
-  geom_line(aes(x = epiweek, y = sequenced),
-            color = "darkred", linewidth = 1) +
-  scale_y_continuous(name = "Number of cases",
-                     sec.axis = sec_axis(
-                       trans = ~.*1,
-                       name = "Number of genomic sequences")) +
-  labs(x = "Epiweek", y = "Number of cases") +
-  theme_minimal() +
-  theme(axis.title.y.right = element_text(color = "darkred"),
-        axis.text.y.right = element_text(color = "darkred"))
+epi_plot <-
+  ggplot() +
+  geom_col_pattern(
+    data = ebov_sl_cases |> select(start, sequenced, unsequenced) |>
+      rename("Sequences" = "sequenced", "Cases" = "unsequenced") |>
+      pivot_longer(!start, names_to = "data_type", values_to = "count"),
+    mapping = aes(x = start,
+                  y = count,
+                  pattern = data_type),
+    fill = "white",
+    pattern_spacing = 0.015, pattern_angle = 45
+  ) +
+  scale_pattern_manual(
+    values = c("stripe", "crosshatch")
+  ) +
+  scale_x_date(
+    date_breaks = "2 weeks",
+    date_labels = "%b %d",
+    limits = c(start_date, end_date),
+    expand = c(0, 0)
+  ) +
+  scale_y_continuous(
+    limits = c(0, 120),
+    breaks = seq(0, 120, 20),
+    expand = c(0, 2)
+  ) +
+  labs(x = NULL, y = NULL, pattern = NULL, pattern_angle = NULL) +
+  theme_bw() +
+  theme(
+    legend.position = c(0.2, 0.8)
+  )
 
-## Plot sequences by epidemiological week and by day
-x <- ggplot(ebov_sl_cases, aes(x = mid_date, y = sequenced)) +
-  geom_col() +
-  labs(x = "Date (mid-week)",
-       y = "Number of sequences\n(aggregated over epiweeks)") +
-  theme_minimal()
-
-y <- ggplot(seq_meta, aes(x = collection_date)) +
-  geom_bar() +
-  labs(x = "Date", y = "Number of sequences\n(daily)") +
-  xlim(min(ebov_sl_cases$start), max(ebov_sl_cases$end))
-
-x / y
-
-## Plot cases and sequences
-x <- ggplot(time_series_uniform, aes(x = date, y = count)) +
-  geom_col() +
-  labs(x = "Date",
-       y = "Number of cases (uniformly\ndistributed over epiweeks)") +
-  theme_minimal()
-
-y <- ggplot(seq_meta, aes(x = collection_date)) +
-  geom_bar() +
-  labs(x = "Date", y = "Number of sequences\n(daily)") +
-  xlim(min(ebov_sl_cases$start), max(ebov_sl_cases$end))
-
-x / y
+## Export plot
+ggsave(filename = "plots/ebov_SL_epidemic_plot.png",
+       plot = epi_plot,
+       height = 0.7 * 14.8, width = 21.0,
+       units = "cm")

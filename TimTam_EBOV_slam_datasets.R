@@ -6,9 +6,8 @@
 
 library(timtamslamR)
 library(patchwork)
-library(tidyverse)
 
-#source("TimTam_EBOV_DataWrangling.R")
+source("TimTam_EBOV_DataWrangling.R")
 
 ################################# Script #######################################
 
@@ -26,7 +25,6 @@ slam_time_series <- time_series |>
          "week_end" = "end",
          "count" = "total") |>
   timtamslamR::spread_across_days()
-
 
 
 ######################### Checks and comparisons ###############################
