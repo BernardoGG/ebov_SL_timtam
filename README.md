@@ -1,7 +1,7 @@
-#+title: Sierra Leone EBOV analysis
-#+author: Bernardo Gutierrez
+# Sierra Leone EBOV analysis
+## Bernardo Gutierrez
 
-TimTam2 analysis of a data set describing the early EBOV epidemic in two eastern provinces in Sierra Leone, Kailahun and Kenema. This outbreak followed shortly after the introduction of the virus into the country and corresponds to a period where cases were growing exponentially, and where a portion of the cases were sequenced. This [[https://github.com/BernardoGG/ebov-expgrowth-example/blob/main/extractData.md][summary]] presents a detailed description of the data. From here, the current analysis focuses on the following:
+TimTam2 analysis of a data set describing the early EBOV epidemic in two eastern provinces in Sierra Leone, Kailahun and Kenema. This outbreak followed shortly after the introduction of the virus into the country and corresponds to a period where cases were growing exponentially, and where a portion of the cases were sequenced. This [`summary`](https://github.com/BernardoGG/ebov-expgrowth-example/blob/main/extractData.md) presents a detailed description of the data. From here, the current analysis focuses on the following:
 
 - Dataset B from the original analysis.
 - Data available from May 19 2014 to August 3 2014.
@@ -9,7 +9,7 @@ TimTam2 analysis of a data set describing the early EBOV epidemic in two eastern
 The distribution of cases and sequences is shown below (plot generated w)
 
 
-* Script inventory and usage
+## Script inventory and usage
 
 - [[file:TimTam_EBOV_DataWrangling.R][TimTam_EBOV_DataWrangling.R]]: Import case data, sequence data and metadata, and generate data frames to be further used for subsequent analyses.
 - [[file:TimTam_EBOV_epi_plots.R][TimTam_EBOV_epi_plots.R]]: Generate summary plot with numbers of cases and sequences per week in eastern Sierra Leone.
@@ -20,7 +20,7 @@ Remaining R scripts are not used on the main analysis pipeline, they were used f
 
 
 
-* Results
+## Results
 
 - Sequencing was performed over the entirety of the study period. A larger proportion of cases were sequenced during June; epidemic growth continued through July with fewer numnbers of sequences produced (figure produced by [[file:./TimTam_EBOV_epi_plots.R]].
 
