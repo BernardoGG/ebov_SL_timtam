@@ -23,4 +23,4 @@ Remaining R scripts are not used on the main analysis pipeline, they were used f
 
 - Sequencing was performed over the entirety of the study period. A larger proportion of cases were sequenced during June; epidemic growth continued through July with fewer numnbers of sequences produced.
 
-![Time series of the number of cases and sequences in each epidemiological week](./plot/ebov_SL_epidemic_plot.png)
+![Time series of the number of cases and sequences in each epidemiological week](./plots/ebov_SL_epidemic_plot.png)
