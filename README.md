@@ -6,8 +6,6 @@ TimTam2 analysis of a data set describing the early EBOV epidemic in two eastern
 - Dataset B from the original analysis.
 - Data available from May 19 2014 to August 3 2014.
 
-The distribution of cases and sequences is shown below (plot generated w)
-
 
 ## Script inventory and usage
 
