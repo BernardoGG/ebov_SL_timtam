@@ -1,5 +1,5 @@
 # Sierra Leone EBOV analysis
-Bernardo Gutierrez
+_Bernardo Gutierrez_
 
 TimTam2 analysis of a data set describing the early EBOV epidemic in two eastern provinces in Sierra Leone, Kailahun and Kenema. This outbreak followed shortly after the introduction of the virus into the country and corresponds to a period where cases were growing exponentially, and where a portion of the cases were sequenced. This [summary](https://github.com/BernardoGG/ebov-expgrowth-example/blob/main/extractData.md) presents a detailed description of the data. From here, the current analysis focuses on the following:
 
