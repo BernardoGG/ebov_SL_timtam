@@ -7,4 +7,4 @@ Model parameters specified in BEAST 2 XMLs
 2. We use an **HKY + Γ** substitution model (4 discrete categories to model the Γ distribution for rate heterogeneity).
 3. Pending: origin date
 4. Pending: latency period
-4. Pending: detection probability
+4. We use a reporting rate of 1 in 3 cases (0.33) following estimates by Gignoux _et al_ (2015) and Dalziel _et al_ (2018). The weekly sequencing rate from the data ranges between 2.5% and 70.6% with a median of 27.9%. 
