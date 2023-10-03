@@ -7,4 +7,5 @@ Model parameters specified in BEAST 2 XMLs
 2. We use an **HKY + Γ** substitution model (4 discrete categories to model the Γ distribution for rate heterogeneity).
 3. From Gire _et al_ we set a rough estimated origin for the Sierra Leone epidemic at 23 April 2014, approximately around the time where the split of both SL1 and SL2 lineages took place. This is **102 days** before present (the last date in the data set).
 4. On a 2015 systematic review, Velasquez _et al_ report an incubation (latency) period of 6.22 ± 1.57 days from exposure to the start of the infectious period, and an infectiousness period of 9.40 ± 5.50 days - this latter estimate corresponds to survivors (infectious period for patients who do not survive is estimated as 5.33 ± 4.03; we use the longer time period from both).
-5. We use a reporting rate of 1 in 3 cases (0.33) following estimates by Gignoux _et al_ (2015) and Dalziel _et al_ (2018). The weekly sequencing rate from the data ranges between 2.5% and 70.6% with a median of 27.9%. 
+5. We use a reporting rate of 1 in 3 cases (0.33) following estimates by Gignoux _et al_ (2015) and Dalziel _et al_ (2018). The weekly sequencing rate from the data ranges between 2.5% and 70.6% with a median of 27.9%.
+6. We add a change in the R0 estimate 76 days before present, when te first sequence was collected.
