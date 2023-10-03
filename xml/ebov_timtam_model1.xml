@@ -220,7 +220,7 @@ name="alignment">
                 </prior>
 
                 <prior id="ClockPrior.c:dataset_B_cds_recoded_dates" name="distribution" x="@clockRate.c:dataset_B_cds_recoded_dates">
-                    <Normal id="Normal.0" name="distr">
+                    <Normal id="Normal.1" name="distr">
                         <parameter id="RealParameter.14" spec="parameter.RealParameter" estimate="false" name="mean">0.0</parameter>
                         <parameter id="RealParameter.15" spec="parameter.RealParameter" estimate="false" name="sigma">1.0</parameter>
                     </Normal>
@@ -313,12 +313,9 @@ name="alignment">
             <log idref="Standard_HKY.s:dataset_B_cds_recoded_dates"/>
             <log idref="gammaShape.s:dataset_B_cds_recoded_dates"/>
 
-
             <log idref="TTR0.t:dataset_B_cds_recoded_dates"/>
             <log idref="TTPropPsi.t:dataset_B_cds_recoded_dates"/>
             <log idref="TTPropTS.t:dataset_B_cds_recoded_dates"/>
-
-
 
             <log idref="TTBirthRate.t:dataset_B_cds_recoded_dates"/>
             <log idref="TTSamplingRate.t:dataset_B_cds_recoded_dates"/>
