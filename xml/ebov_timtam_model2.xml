@@ -179,7 +179,8 @@ name="alignment">
             <parameter id="TTR0.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" lower="0.0" upper="10.0" name="stateNode">0.75 1.59</parameter>
             <parameter id="TTPropPsi.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" lower="0.0" name="stateNode" upper="1.0">0.092</parameter>
             <parameter id="TTPropTS.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" lower="0.0" name="stateNode" upper="1.0">0.33</parameter>
-            <stateNode id="TTHistorySizes.t:dataset_B_cds_recoded_dates" spec="parameter.IntegerParameter">0</stateNode>
+            <stateNode id="TTHistorySizes.t:dataset_B_cds_recoded_dates" spec="parameter.IntegerParameter" dimension="6">10 90 180 240 300 360</stateNode>
+
         </state>
 
         <init id="RandomTree.t:dataset_B_cds_recoded_dates" spec="RandomTree" estimate="false" initial="@Tree.t:dataset_B_cds_recoded_dates" taxa="@dataset_B_cds_recoded_dates">
@@ -189,7 +190,7 @@ name="alignment">
         </init>
         <distribution id="posterior" spec="CompoundDistribution">
             <distribution id="prior" spec="CompoundDistribution">
-                <distribution id="TimTamTimeSeries.t:dataset_B_cds_recoded_dates" spec="timtam.TimTam" parameterisation="timeSeriesR0" propPsi="@TTPropPsi.t:dataset_B_cds_recoded_dates" propTimeSeries="@TTPropTS.t:dataset_B_cds_recoded_dates" r0="@TTR0.t:dataset_B_cds_recoded_dates" tree="@Tree.t:dataset_B_cds_recoded_dates" conditionOnObservation="false">
+                <distribution id="TimTamTimeSeries.t:dataset_B_cds_recoded_dates" spec="timtam.TimTam" historySizes="@TTHistorySizes.t:dataset_B_cds_recoded_dates" parameterisation="timeSeriesR0" propPsi="@TTPropPsi.t:dataset_B_cds_recoded_dates" propTimeSeries="@TTPropTS.t:dataset_B_cds_recoded_dates" r0="@TTR0.t:dataset_B_cds_recoded_dates" tree="@Tree.t:dataset_B_cds_recoded_dates" conditionOnObservation="false">
                 <!--distribution id="TimTam.t:dataset_B_cds_recoded_dates" spec="timtam.TimTam" historySizes="@TTHistorySizes.t:dataset_B_cds_recoded_dates" lambda="@TTBirthRate.t:dataset_B_cds_recoded_dates" nu="@TTNuProb.t:dataset_B_cds_recoded_dates" psi="@TTSamplingRate.t:dataset_B_cds_recoded_dates" tree="@Tree.t:dataset_B_cds_recoded_dates"-->
                     <parameter id="TTNetRemovalRate.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" estimate="false" lower="0.0" name="sigma">0.11</parameter>
                     <parameter id="TTOriginTime.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" estimate="false" name="originTime">102.0</parameter>
@@ -291,7 +292,7 @@ name="alignment">
         <operator id="TTPropPsiWalk.t:dataset_B_cds_recoded_dates" spec="operator.RealRandomWalkOperator" parameter="@TTPropPsi.t:dataset_B_cds_recoded_dates" weight="1.0" windowSize="0.01"/>
         <operator id="TTPropTimeSeriesScaler.t:dataset_B_cds_recoded_dates" spec="ScaleOperator" parameter="@TTPropTS.t:dataset_B_cds_recoded_dates" scaleFactor="0.9" weight="1.0"/>
         <operator id="TTPropTimeSeriesWalk.t:dataset_B_cds_recoded_dates" spec="operator.RealRandomWalkOperator" parameter="@TTPropTS.t:dataset_B_cds_recoded_dates" weight="1.0" windowSize="0.01"/>
-        <!-- <operator id="TTHistorySizesWalk.t:dataset_B_cds_recoded_dates" spec="operator.IntRandomWalkOperator" parameter="@TTHistorySizes.t:dataset_B_cds_recoded_dates" weight="3.0" windowSize="20"/> -->
+  	    <operator id="TTHistorySizesWalk.t:dataset_B_cds_recoded_dates" spec="operator.IntRandomWalkOperator" parameter="@TTHistorySizes.t:dataset_B_cds_recoded_dates" weight="1.1" windowSize="1000"/>
         <operator id="TimTamTimeSeriesBICEPSEpochTop.t:dataset_B_cds_recoded_dates" spec="EpochFlexOperator" scaleFactor="0.1" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="2.0"/>
         <operator id="TimTamTimeSeriesBICEPSEpochAll.t:dataset_B_cds_recoded_dates" spec="EpochFlexOperator" fromOldestTipOnly="false" scaleFactor="0.1" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="2.0"/>
         <operator id="TimTamTimeSeriesBICEPSTreeFlex.t:dataset_B_cds_recoded_dates" spec="TreeStretchOperator" scaleFactor="0.01" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="2.0"/>
@@ -302,7 +303,7 @@ name="alignment">
         <operator id="TimTamTimeSeriesWide.t:dataset_B_cds_recoded_dates" spec="Exchange" isNarrow="false" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="3.0"/>
         <operator id="TimTamTimeSeriesWilsonBalding.t:dataset_B_cds_recoded_dates" spec="WilsonBalding" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="3.0"/>
 
-        <logger id="tracelog" spec="Logger" fileName="$(filebase)_run3.log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
+        <logger id="tracelog" spec="Logger" fileName="$(filebase)_run2.log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
@@ -324,7 +325,7 @@ name="alignment">
             <log idref="likelihood"/>
             <log idref="prior"/>
         </logger>
-        <logger id="treelog.t:dataset_B_cds_recoded_dates" spec="Logger" fileName="$(filebase)_run3-$(tree).trees" logEvery="1000" mode="tree">
+        <logger id="treelog.t:dataset_B_cds_recoded_dates" spec="Logger" fileName="$(filebase)_run2-$(tree).trees" logEvery="1000" mode="tree">
             <log id="TreeWithMetaDataLogger.t:dataset_B_cds_recoded_dates" spec="beast.base.evolution.TreeWithMetaDataLogger" tree="@Tree.t:dataset_B_cds_recoded_dates"/>
         </logger>
         <operatorschedule id="OperatorSchedule" spec="OperatorSchedule"/>
