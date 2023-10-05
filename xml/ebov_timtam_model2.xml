@@ -286,12 +286,12 @@ name="alignment">
             <operator id="gammaShapeScalerX.s:dataset_B_cds_recoded_dates" spec="kernel.BactrianScaleOperator" parameter="@gammaShape.s:dataset_B_cds_recoded_dates" scaleFactor="0.5" upper="10.0" weight="0.1"/>
         </operator-->
 
-        <operator id="TTR0Scaler.t:dataset_B_cds_recoded_dates" spec="ScaleOperator" parameter="@TTR0.t:dataset_B_cds_recoded_dates" scaleFactor="0.9" weight="1.0"/>
+        <!--operator id="TTR0Scaler.t:dataset_B_cds_recoded_dates" spec="ScaleOperator" parameter="@TTR0.t:dataset_B_cds_recoded_dates" scaleFactor="0.9" weight="1.0"/-->
         <operator id="TTR0Walk.t:dataset_B_cds_recoded_dates" spec="operator.RealRandomWalkOperator" parameter="@TTR0.t:dataset_B_cds_recoded_dates" weight="1.0" windowSize="0.01"/>
         <operator id="TTPropPsiScaler.t:dataset_B_cds_recoded_dates" spec="ScaleOperator" parameter="@TTPropPsi.t:dataset_B_cds_recoded_dates" scaleFactor="0.9" weight="1.0"/>
-        <operator id="TTPropPsiWalk.t:dataset_B_cds_recoded_dates" spec="operator.RealRandomWalkOperator" parameter="@TTPropPsi.t:dataset_B_cds_recoded_dates" weight="1.0" windowSize="0.01"/>
+        <!--operator id="TTPropPsiWalk.t:dataset_B_cds_recoded_dates" spec="operator.RealRandomWalkOperator" parameter="@TTPropPsi.t:dataset_B_cds_recoded_dates" weight="1.0" windowSize="0.01"/-->
         <operator id="TTPropTimeSeriesScaler.t:dataset_B_cds_recoded_dates" spec="ScaleOperator" parameter="@TTPropTS.t:dataset_B_cds_recoded_dates" scaleFactor="0.9" weight="1.0"/>
-        <operator id="TTPropTimeSeriesWalk.t:dataset_B_cds_recoded_dates" spec="operator.RealRandomWalkOperator" parameter="@TTPropTS.t:dataset_B_cds_recoded_dates" weight="1.0" windowSize="0.01"/>
+        <!--operator id="TTPropTimeSeriesWalk.t:dataset_B_cds_recoded_dates" spec="operator.RealRandomWalkOperator" parameter="@TTPropTS.t:dataset_B_cds_recoded_dates" weight="1.0" windowSize="0.01"/-->
   	    <operator id="TTHistorySizesWalk.t:dataset_B_cds_recoded_dates" spec="operator.IntRandomWalkOperator" parameter="@TTHistorySizes.t:dataset_B_cds_recoded_dates" weight="1.1" windowSize="1000"/>
         <operator id="TimTamTimeSeriesBICEPSEpochTop.t:dataset_B_cds_recoded_dates" spec="EpochFlexOperator" scaleFactor="0.1" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="2.0"/>
         <operator id="TimTamTimeSeriesBICEPSEpochAll.t:dataset_B_cds_recoded_dates" spec="EpochFlexOperator" fromOldestTipOnly="false" scaleFactor="0.1" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="2.0"/>
