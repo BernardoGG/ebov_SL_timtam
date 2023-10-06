@@ -161,7 +161,7 @@ name="alignment">
 
     <map name="OneOnX" >beast.base.inference.distribution.OneOnX</map>
 
-    <run id="mcmc" spec="MCMC" chainLength="10000000">
+    <run id="mcmc" spec="MCMC" chainLength="150000000">
 
         <state id="state" spec="State" storeEvery="5000">
             <tree id="Tree.t:dataset_B_cds_recoded_dates" spec="beast.base.evolution.tree.Tree" name="stateNode">
@@ -179,7 +179,8 @@ name="alignment">
             <parameter id="TTR0.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" lower="0.0" upper="10.0" name="stateNode">0.75 1.59</parameter>
             <parameter id="TTPropPsi.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" lower="0.0" name="stateNode" upper="1.0">0.092</parameter>
             <parameter id="TTPropTS.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" lower="0.0" name="stateNode" upper="1.0">0.33</parameter>
-            <stateNode id="TTHistorySizes.t:dataset_B_cds_recoded_dates" spec="parameter.IntegerParameter" dimension="6">10 90 180 240 300 360</stateNode>
+            <parameter id="TTNetRemovalRate.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" lower="0.0" name="stateNode">0.11</parameter>
+            <stateNode id="TTHistorySizes.t:dataset_B_cds_recoded_dates" spec="parameter.IntegerParameter" dimension="11">10 60 90 180 180 150 240 300 210 240 360</stateNode>
 
         </state>
 
@@ -191,26 +192,26 @@ name="alignment">
         <distribution id="posterior" spec="CompoundDistribution">
             <distribution id="prior" spec="CompoundDistribution">
                 <distribution id="TimTamTimeSeries.t:dataset_B_cds_recoded_dates" spec="timtam.TimTam" historySizes="@TTHistorySizes.t:dataset_B_cds_recoded_dates" parameterisation="timeSeriesR0" propPsi="@TTPropPsi.t:dataset_B_cds_recoded_dates" propTimeSeries="@TTPropTS.t:dataset_B_cds_recoded_dates" r0="@TTR0.t:dataset_B_cds_recoded_dates" tree="@Tree.t:dataset_B_cds_recoded_dates" conditionOnObservation="false">
-                <!--distribution id="TimTam.t:dataset_B_cds_recoded_dates" spec="timtam.TimTam" historySizes="@TTHistorySizes.t:dataset_B_cds_recoded_dates" lambda="@TTBirthRate.t:dataset_B_cds_recoded_dates" nu="@TTNuProb.t:dataset_B_cds_recoded_dates" psi="@TTSamplingRate.t:dataset_B_cds_recoded_dates" tree="@Tree.t:dataset_B_cds_recoded_dates"-->
-                    <parameter id="TTNetRemovalRate.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" estimate="false" lower="0.0" name="sigma">0.11</parameter>
+
                     <parameter id="TTOriginTime.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" estimate="false" name="originTime">102.0</parameter>
                     <parameter id="TTDisasterTimes.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" estimate="false" name="disasterTimes">76.1 75.1 74.1 73.1 72.1 71.1 70.1 69.1 68.1 67.1 66.1 65.1 64.1 63.1 62.1 61.1 60.1 59.1 58.1 57.1 56.1 55.1 54.1 53.1 52.1 51.1 50.1 49.1 48.1 47.1 46.1 45.1 44.1 43.1 42.1 41.1 40.1 39.1 38.1 37.1 36.1 35.1 34.1 33.1 32.1 31.1 30.1 29.1 28.1 27.1 26.1 25.1 24.1 23.1 22.1 21.1 20.1 19.1 18.1 17.1 16.1 15.1 14.1 13.1 12.1 11.1 10.1 9.09999999999999 8.09999999999999 7.09999999999999 6.09999999999999 5.09999999999999 4.09999999999999 3.09999999999999 2.09999999999999 1.09999999999999 0.0999999999999943</parameter>
                     <disasterSizes id="TTDisasterSizes.t:dataset_B_cds_recoded_dates" spec="parameter.IntegerParameter" estimate="false">0 0 1 1 1 0 0 2 2 3 3 3 2 2 4 4 4 5 4 4 4 8 9 9 9 9 9 9 7 8 8 8 8 8 8 6 7 7 7 7 7 6 11 12 12 12 12 12 11 14 14 15 15 15 14 14 9 10 10 10 10 10 9 11 11 11 11 11 11 11 16 17 17 17 17 17 17</disasterSizes>
-                    <!-- <parameter id="TTHistoryTimes.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" estimate="false" name="historyTimes">0.0</parameter> -->
-		    		<parameter spec="parameter.RealParameter" estimate="false" name="r0ChangeTimes">76.0</parameter>
+                    <parameter id="TTHistoryTimes.t:dataset_B_cds_recoded_dates" spec="parameter.RealParameter" estimate="false" name="historyTimes"> 70.9583333333333 63.9583333333333 56.9583333333333 49.9583333333333 42.9583333333333 35.9583333333333 28.9583333333333 21.9583333333333 14.9583333333333 7.9583333333333 -0.0416666666666667</parameter>
+		    		<parameter spec="parameter.RealParameter" estimate="false" name="r0ChangeTimes">76.3333333333333</parameter>
+
                 </distribution>
 
 
                 <prior id="TTPropPsiPrior.t:dataset_B_cds_recoded_dates" name="distribution" x="@TTPropPsi.t:dataset_B_cds_recoded_dates">
                     <Beta id="Beta.0" name="distr">
                         <parameter id="RealParameter.5" spec="parameter.RealParameter" estimate="false" name="alpha">2.0</parameter>
-                        <parameter id="RealParameter.6" spec="parameter.RealParameter" estimate="false" name="beta">201.0</parameter>
+                        <parameter id="RealParameter.6" spec="parameter.RealParameter" estimate="false" name="beta">22.0</parameter>
                     </Beta>
                 </prior>
                 <prior id="TTPropTimeSeriesPrior.t:dataset_B_cds_recoded_dates" name="distribution" x="@TTPropTS.t:dataset_B_cds_recoded_dates">
                     <Beta id="Beta.1" name="distr">
                         <parameter id="RealParameter.7" spec="parameter.RealParameter" estimate="false" name="alpha">2.0</parameter>
-                        <parameter id="RealParameter.8" spec="parameter.RealParameter" estimate="false" name="beta">201.0</parameter>
+                        <parameter id="RealParameter.8" spec="parameter.RealParameter" estimate="false" name="beta">4.0</parameter>
                     </Beta>
                 </prior>
                 <prior id="TTR0Prior.t:dataset_B_cds_recoded_dates" name="distribution" x="@TTR0.t:dataset_B_cds_recoded_dates">
@@ -231,6 +232,10 @@ name="alignment">
                         <parameter id="RealParameter.0" spec="parameter.RealParameter" estimate="false" name="mean">1.0</parameter>
                     </Exponential>
                 </prior>
+                <prior id="TTNetRemovalRatePrior.t:dataset_B_cds_recoded_dates" name="distribution" x="@TTNetRemovalRate.t:dataset_B_cds_recoded_dates">
+		  <Uniform name="distr" lower="0.05" upper="0.5">
+		  </Uniform>
+		</prior>
 
             </distribution>
             <distribution id="likelihood" spec="CompoundDistribution" useThreads="true">
@@ -293,6 +298,7 @@ name="alignment">
         <operator id="TTPropTimeSeriesScaler.t:dataset_B_cds_recoded_dates" spec="ScaleOperator" parameter="@TTPropTS.t:dataset_B_cds_recoded_dates" scaleFactor="0.9" weight="1.0"/>
         <!--operator id="TTPropTimeSeriesWalk.t:dataset_B_cds_recoded_dates" spec="operator.RealRandomWalkOperator" parameter="@TTPropTS.t:dataset_B_cds_recoded_dates" weight="1.0" windowSize="0.01"/-->
   	    <operator id="TTHistorySizesWalk.t:dataset_B_cds_recoded_dates" spec="operator.IntRandomWalkOperator" parameter="@TTHistorySizes.t:dataset_B_cds_recoded_dates" weight="1.1" windowSize="1000"/>
+
         <operator id="TimTamTimeSeriesBICEPSEpochTop.t:dataset_B_cds_recoded_dates" spec="EpochFlexOperator" scaleFactor="0.1" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="2.0"/>
         <operator id="TimTamTimeSeriesBICEPSEpochAll.t:dataset_B_cds_recoded_dates" spec="EpochFlexOperator" fromOldestTipOnly="false" scaleFactor="0.1" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="2.0"/>
         <operator id="TimTamTimeSeriesBICEPSTreeFlex.t:dataset_B_cds_recoded_dates" spec="TreeStretchOperator" scaleFactor="0.01" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="2.0"/>
@@ -303,7 +309,7 @@ name="alignment">
         <operator id="TimTamTimeSeriesWide.t:dataset_B_cds_recoded_dates" spec="Exchange" isNarrow="false" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="3.0"/>
         <operator id="TimTamTimeSeriesWilsonBalding.t:dataset_B_cds_recoded_dates" spec="WilsonBalding" tree="@Tree.t:dataset_B_cds_recoded_dates" weight="3.0"/>
 
-        <logger id="tracelog" spec="Logger" fileName="$(filebase)_run2.log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
+        <logger id="tracelog" spec="Logger" fileName="$(filebase)_run3.log" logEvery="1000" model="@posterior" sanitiseHeaders="true" sort="smart">
             <log idref="posterior"/>
             <log idref="likelihood"/>
             <log idref="prior"/>
@@ -325,7 +331,7 @@ name="alignment">
             <log idref="likelihood"/>
             <log idref="prior"/>
         </logger>
-        <logger id="treelog.t:dataset_B_cds_recoded_dates" spec="Logger" fileName="$(filebase)_run2-$(tree).trees" logEvery="1000" mode="tree">
+        <logger id="treelog.t:dataset_B_cds_recoded_dates" spec="Logger" fileName="$(filebase)_run3-$(tree).trees" logEvery="1000" mode="tree">
             <log id="TreeWithMetaDataLogger.t:dataset_B_cds_recoded_dates" spec="beast.base.evolution.TreeWithMetaDataLogger" tree="@Tree.t:dataset_B_cds_recoded_dates"/>
         </logger>
         <operatorschedule id="OperatorSchedule" spec="OperatorSchedule"/>
